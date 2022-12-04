@@ -1,17 +1,14 @@
-use std::fs;
-
+mod aoc_common;
 mod days;
-use days::day2;
+use days::day3;
 
 fn main() {
-    // let file_path = "./input/example2a.txt";
-    let file_path = "./input/day2.txt";
-    let contents = fs::read_to_string(file_path)
-        .expect("Could not read file!");
-
-    let answer = day2::part1(&contents);
+    // let input = aoc_common::read_input("./input/example3.txt");
+    let input = aoc_common::read_input("./input/day3.txt");
+    
+    let answer = day3::part1(&input);
     println!("Part 1: {answer}");
 
-    let answer = day2::part2(&contents);
+    let answer = day3::part2(&input);
     println!("Part 2: {answer}");
 }
