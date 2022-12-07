@@ -9,6 +9,6 @@ fn main() {
     let answer = day6::part1(&input);
     println!("Part 1: {answer}");
 
-    // let answer = day5::part2(&input);
-    // println!("Part 2: {answer}");
+    let answer = day6::part2(&input);
+    println!("Part 2: {answer}");
 }
