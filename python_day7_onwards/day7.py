@@ -19,33 +19,13 @@ class Directory:
             for child in self.children:
                 self.disk_usage += child.sum_children()
             return self.disk_usage
-
-    def sum_less_than(self, value):
-        total = 0
-        for child in self.children:
-            total += child.sum_less_than(value)
-
-        if self.disk_usage < value:
-            return self.disk_usage + total
-        else:
-            return total
-
-    def find_smallest_to_delete(self, min_to_free):
-        if self.disk_usage < min_to_free:
-            return 70_000_000
-        file_sizes = []
-        for child in self.children:
-            file_sizes.append(child.find_smallest_to_delete(min_to_free))
-        if len(file_sizes) == 0:
-            return self.disk_usage
-        else:
-            return min([self.disk_usage, *file_sizes])
-      
+    
 
 class FileSystem:
     def __init__(self) -> None:
         self.root = Directory('/', None)
         self.current_dir = self.root
+        self.all_directories = [self.root]
 
     def process_line(self, line: str):
         parts = line.split(' ')
@@ -65,7 +45,6 @@ class FileSystem:
             )
 
     def change_dir(self, new_directory: str):
-        previous = self.current_dir
         if new_directory == '..':
             parent = self.current_dir.parent
             if parent is not None:
@@ -79,24 +58,31 @@ class FileSystem:
                     break
             else:
                 raise ValueError(f"Could not find '{new_directory}' in '{self.current_dir.name}'!")
-        # print(f"cd '{previous.name}' to '{self.current_dir.name}'")
 
     def add_dir(self, name):
-        # print(f"Add '{name}' to '{self.current_dir.name}'")
         new_dir = Directory(
             name=name,
             parent=self.current_dir
         )
         self.current_dir.children.append(new_dir)
+        self.all_directories.append(new_dir)
 
     def total_space_used(self):
         return self.root.sum_children()
                    
     def sum_directories_less_than(self, disk_usage_limit: int) -> int:
-        return self.root.sum_less_than(disk_usage_limit)
+        all_less_than = []
+        for directory in self.all_directories:
+            if directory.disk_usage < disk_usage_limit:
+                all_less_than.append(directory.disk_usage)
+        return sum(all_less_than)
 
     def find_smallest_to_delete(self, min_to_free):
-        return self.root.find_smallest_to_delete(min_to_free)
+        over_minimum = []
+        for directory in self.all_directories:
+            if directory.disk_usage >= min_to_free:
+                over_minimum.append(directory.disk_usage)
+        return min(over_minimum)
 
 
 def part1and2(input: list[str]) -> int:
