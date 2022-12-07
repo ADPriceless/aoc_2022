@@ -29,7 +29,18 @@ class Directory:
             return self.disk_usage + total
         else:
             return total
-                
+
+    def find_smallest_to_delete(self, min_to_free):
+        if self.disk_usage < min_to_free:
+            return 70_000_000
+        file_sizes = []
+        for child in self.children:
+            file_sizes.append(child.find_smallest_to_delete(min_to_free))
+        if len(file_sizes) == 0:
+            return self.disk_usage
+        else:
+            return min([self.disk_usage, *file_sizes])
+      
 
 class FileSystem:
     def __init__(self) -> None:
@@ -68,29 +79,43 @@ class FileSystem:
                     break
             else:
                 raise ValueError(f"Could not find '{new_directory}' in '{self.current_dir.name}'!")
-        print(f"cd '{previous.name}' to '{self.current_dir.name}'")
+        # print(f"cd '{previous.name}' to '{self.current_dir.name}'")
 
     def add_dir(self, name):
-        print(f"Add '{name}' to '{self.current_dir.name}'")
+        # print(f"Add '{name}' to '{self.current_dir.name}'")
         new_dir = Directory(
             name=name,
             parent=self.current_dir
         )
         self.current_dir.children.append(new_dir)
-                    
+
+    def total_space_used(self):
+        return self.root.sum_children()
+                   
     def sum_directories_less_than(self, disk_usage_limit: int) -> int:
-        self.root.sum_children()
         return self.root.sum_less_than(disk_usage_limit)
 
+    def find_smallest_to_delete(self, min_to_free):
+        return self.root.find_smallest_to_delete(min_to_free)
 
-def part1(input: list[str]) -> int:
+
+def part1and2(input: list[str]) -> int:
     file_system = FileSystem()
-    
+
+    TOTAL_SPACE =70_000_000
+    MIN_UNUSED = 30_000_000
+
     for line in input:
         file_system.process_line(line)
             
+    total_used = file_system.total_space_used()
+    total_to_free = MIN_UNUSED - (TOTAL_SPACE - total_used)
+
     answer = file_system.sum_directories_less_than(100_000)
     print(f'Part 1: {answer}')
+
+    answer = file_system.find_smallest_to_delete(total_to_free)
+    print(f'Part 2: {answer}')
 
 
 def main():
@@ -98,7 +123,7 @@ def main():
     # with open('input\\example7.txt') as f:
         lines = f.readlines()
 
-    part1(lines) 
+    part1and2(lines)
 
 
 if __name__ == '__main__':
