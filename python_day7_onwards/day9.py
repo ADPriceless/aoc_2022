@@ -1,14 +1,15 @@
 import aoc_utils
 
 
-class Rope:
-    def __init__(self, x, y) -> None:
+class Knot:
+    def __init__(self, x, y, next_knot=None, idx=0) -> None:
         self.x, self.y = x, y
         self.prev_x, self.prev_y = x, y
         self.visited = []
+        self.next = next_knot
+        self.idx = idx
 
     def move(self, direction: str) -> None:
-        self.prev_x, self.prev_y = self.x, self.y
         if direction == 'U':
             self.y += 1
         elif direction == 'R':
@@ -20,11 +21,24 @@ class Rope:
         else:
             raise ValueError('Not a valid direction!')
 
-    def distance_to(self, rope) -> int:
-        return (self.x - rope.x)**2 + (self.y - rope.y)**2
+    def distance_to(self, knot) -> int:
+        return (self.x - knot.x)**2 + (self.y - knot.y)**2
 
-    def follow(self, rope):
-        self.x, self.y = rope.prev_x, rope.prev_y
+    def distance_to_next(self):
+        if not self.next:
+            return 0
+        else:
+            return (self.distance_to(self.next))
+
+    def follow(self, knot):
+        if self.x < knot.x:
+            self.x += 1
+        elif self.x > knot.x:
+            self.x -= 1
+        if self.y < knot.y:
+            self.y += 1
+        elif self.y > knot.y:
+            self.y -= 1
 
     def add_to_visited(self) -> None:
         coord = (self.x, self.y)
@@ -32,12 +46,11 @@ class Rope:
             self.visited.append(coord)
 
 
-def print_area(head: Rope, tail: Rope):
+def print_area(rope, n=7):
     """Only good for small areas e.g. example input"""
-    n = 7
     area = [['.' for _ in range(n)] for _ in range(n)]
-    area[head.y][head.x] = 'H' # swap x and y bc lists are row-major
-    area[tail.y][tail.x] = 'T'
+    for knot in rope:
+        area[knot.y][knot.x] = str(knot.idx)
     area.reverse() # reverse bc increasing y moves down rows
     for row in area:
         for thing in row:
@@ -46,9 +59,9 @@ def print_area(head: Rope, tail: Rope):
     print()
 
 
-def part1(lines: list[str]) -> int: 
-    head = Rope(0, 0)
-    tail = Rope(0, 0)
+def part1(lines: list[str]) -> int:
+    head = Knot(0, 0)
+    tail = Knot(0, 0)
     tail.add_to_visited() # add initial spot [0, 0]
 
     for line in lines:
@@ -60,16 +73,42 @@ def part1(lines: list[str]) -> int:
             if tail.distance_to(head) >= 4:
                 tail.follow(head)
                 tail.add_to_visited()
-            # print_area(head, tail)
+            # print_area([head, tail])
 
     num_visited = len(tail.visited)
     print(f'Part 1: {num_visited}')
+
+
+def part2(lines: list[str]) -> int:
+    rope = [Knot(0, 0, idx=i) for i in range(10)]
+    for i in range(1, 10):
+        rope[i].next = rope[i-1]
+
+    head = rope[0]
+    tail = rope[-1]
+    tail.add_to_visited() # add initial spot [0, 0]
+
+    for line in lines:
+        motion = line.split(' ')
+        direction, distance = motion[0], int(motion[1])
+
+        for _ in range(distance):
+            head.move(direction)
+            for knot in rope:
+                if knot.distance_to_next() >= 4:
+                    knot.follow(knot.next)
+                    knot.add_to_visited()
+            # print_area(rope, n=7)
+
+    num_visited = len(tail.visited)
+    print(f'Part 2: {num_visited}')
 
 
 def main():
     # lines = aoc_utils.readlines('input\\example9.txt')
     lines = aoc_utils.readlines('input\\day9.txt')
     part1(lines)
+    part2(lines)
 
 
 if __name__ == '__main__':
