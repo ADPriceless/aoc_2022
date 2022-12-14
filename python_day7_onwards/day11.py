@@ -1,15 +1,13 @@
-import math
-
 import aoc_utils
 
 
 class Jungle:
-
-    NUMBER_OF_ROUNDS = 20
-
-    def __init__(self, notes: list[str]) -> None:
+    def __init__(self, notes: list[str], num_rounds: int = 20, part=1) -> None:
         self.notes = notes
+        self.num_rounds = num_rounds
+        self.part = part
         self.monkeys = []
+        self.common = 1
 
     def make_monkeys(self):
         for line in self.notes:
@@ -28,19 +26,35 @@ class Jungle:
                 monkey.set_pass_monkey(note)
             elif note.startswith('If false'):
                 monkey.set_fail_monkey(note)
-        
+        self.calc_common_factor()
+    
+    def calc_common_factor(self):
+        for monkey in self.monkeys:
+            self.common *= monkey.test_operand
+
     def monkey_around(self):
-        for _ in range(self.NUMBER_OF_ROUNDS):
+        for num in range(self.num_rounds):
             for monkey in self.monkeys:
                 monkey.print_id()
                 # print(f'Items {monkey.items}')
                 for item in monkey.items:
                     monkey.inspect(item)
                     monkey.do_operation()
-                    monkey.get_bored()
+                    if self.part == 1:
+                        monkey.get_bored()
+                    elif self.part == 2:
+                        monkey.get_bored_p2(self.common)
                     receive_monkey_id, item = monkey.test_and_throw_item()
                     self.monkeys[receive_monkey_id].catch(item)
                 monkey.done_throwing()
+            if self.part == 2:
+                if any((num == 0, num == 19, num == 999, num == 9999)):
+                    self.print_monkey_inspection_counts(num)
+
+    def print_monkey_inspection_counts(self, num_rounds):
+        print(f'== After round {num_rounds+1} ==')
+        for monkey in self.monkeys:
+            print(f'Monkey {monkey.id} inspected items {monkey.num_inspects} times.')
 
     def calculate_monkey_business(self):
         num_inspects = [monkey.num_inspects for monkey in self.monkeys]
@@ -168,20 +182,36 @@ class Monkey:
         if self.print_actions:
             print(f'\t\tMonkey gets bored with item. Worry level is divided by 3 to {self.worry_level}')
 
+    def get_bored_p2(self, common_factor: int):
+        self.worry_level = self.worry_level % common_factor
+        if self.print_actions:
+            print(f'\t\tMonkey gets bored with item. Worry level is divided by 3 to {self.worry_level}')
+
     def done_throwing(self):
         self.items = []
     
 
-def main():
-    # lines = aoc_utils.readlines('input\\example11.txt')
-    lines = aoc_utils.readlines('input\\day11.txt')
-
+def part1(lines):
     jungle = Jungle(lines)
     jungle.make_monkeys()
     jungle.monkey_around()
     answer = jungle.calculate_monkey_business()
-
     print(f'Part 1: {answer}')
+
+
+def part2(lines):
+    jungle = Jungle(lines, num_rounds=10000, part=2)
+    jungle.make_monkeys()
+    jungle.monkey_around()
+    answer = jungle.calculate_monkey_business()
+    print(f'Part 2: {answer}')
+
+
+def main():
+    # lines = aoc_utils.readlines('input\\example11.txt')
+    lines = aoc_utils.readlines('input\\day11.txt')
+    part1(lines)
+    part2(lines)
 
 
 if __name__ == '__main__':
