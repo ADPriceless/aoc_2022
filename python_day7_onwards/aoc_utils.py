@@ -11,16 +11,16 @@ def readgroups(filepath: str) -> list[str]:
 
 
 def split_and_cast(line: str, split=' ') -> list:
-        result = []
-        for term in line.split(split):
-            stripped = term.strip()
-            if stripped.isnumeric():
-                result.append(int(stripped))
-            elif stripped[0] == '-' and stripped[1:].isnumeric():
-                result.append(int(stripped))
-            else:
-                result.append(stripped)
-        return result
+    result = []
+    for term in line.split(split):
+        stripped = term.strip()
+        if stripped.isnumeric():
+            result.append(int(stripped))
+        elif stripped[0] == '-' and stripped[1:].isnumeric():
+            result.append(int(stripped))
+        else:
+            result.append(stripped)
+    return result
 
 
 class Point2D:
