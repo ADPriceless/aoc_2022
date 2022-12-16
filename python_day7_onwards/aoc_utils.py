@@ -4,6 +4,12 @@ def readlines(filepath: str) -> list[str]:
     return lines
 
 
+def readgroups(filepath: str) -> list[str]:
+    with open(filepath) as f:
+        text = f.read()
+    return text.split('\n\n')
+
+
 def split_and_cast(line: str, split=' ') -> list:
         result = []
         for term in line.split(split):
