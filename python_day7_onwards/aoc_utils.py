@@ -1,6 +1,8 @@
-def readlines(filepath: str) -> list[str]:
+def readlines(filepath: str, remove_blank_lines: bool = False) -> list[str]:
     with open(filepath) as f:
         lines = f.readlines()
+    if remove_blank_lines:
+        lines = filter(lambda line: line != '\n', lines)
     return lines
 
 

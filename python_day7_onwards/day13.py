@@ -47,23 +47,52 @@ def compare(left, right):
             return False
 
 
-def solve(aoc_input: list[str]) -> int:
+def part1(aoc_input: list[str]) -> int:
     total = 0
     for i, packet in enumerate(aoc_input):
         left_packet = eval(packet.split('\n')[0])
         right_packet = eval(packet.split('\n')[1])
         if compare(left_packet, right_packet):
             total += (i + 1)
-            print(total)
+            # print(total)
         # print(i, compare(left_packet, right_packet))
     return total
+
+
+def bubble_sort(all_packets: list) -> None:
+    for _ in range(len(all_packets)):
+        for i in range(1, len(all_packets)):
+            if compare(all_packets[i-1], all_packets[i]) is False: # left > right
+                temp = all_packets[i]
+                all_packets[i] = all_packets[i-1]
+                all_packets[i-1] = temp
+
+
+def part2(aoc_input: list[str]) -> int:
+    all_packets = []
+    for packet in aoc_input:
+        all_packets.append(eval(packet))
+    # insert two additional divider packets
+    all_packets.append([[2]])
+    all_packets.append([[6]])
+    bubble_sort(all_packets)
+    decoder_key1 = all_packets.index([[2]]) + 1
+    decoder_key2 = all_packets.index([[6]]) + 1
+    return decoder_key1 * decoder_key2
 
 
 def main():
     # aoc_input = aoc_utils.readgroups('input\\example13.txt')
     aoc_input = aoc_utils.readgroups('input\\day13.txt')
-    answer = solve(aoc_input)
+    answer = part1(aoc_input)
     print(f'Part 1: {answer}')
+
+    # aoc_input = aoc_utils.readlines('input\\example13.txt', remove_blank_lines=True)
+    aoc_input = aoc_utils.readlines('input\\day13.txt', remove_blank_lines=True)
+    answer = part2(aoc_input)
+    print(f'Part 2: {answer}')
+
+
 
 if __name__ == '__main__':
     main()
