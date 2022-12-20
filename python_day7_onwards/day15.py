@@ -44,16 +44,16 @@ class Environment:
                     beacon_x, beacon_y
                 )
             )
-        # also track x-values of beacons
-        if beacon_y == self.line_y:
-            self.beacons_on_y.add(beacon_x)
+            # also track x-values of beacons
+            if beacon_y == self.line_y:
+                self.beacons_on_y.add(beacon_x)
 
     def find_beacon_exclusion(self) -> int:
         for sensor in self.sensors:
             lower, upper = sensor.get_line_coverage(self.line_y)
             if (lower, upper) == (0, 0):
                 continue
-            for x in range(lower, upper):
+            for x in range(lower, upper + 1):
                 if x not in self.covered and x not in self.beacons_on_y:
                     self.covered.add(x)
         return len(self.covered)
