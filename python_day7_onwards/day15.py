@@ -65,31 +65,36 @@ class Environment:
             covered = []
             for sensor in self.sensors:
                 lower, upper = sensor.get_line_coverage(y)
-                if len(covered) == 0:
+                if (lower, upper) == (0, 0):
+                    continue
+                for i in range(len(covered) - 1, -1, -1): # WHAT?! *goat scream (AAHHHH)*
+                    covered_lower, covered_upper = covered[i]
+                    if covered_lower <= lower and upper <= covered_upper: # current range within covered
+                        lower = covered_lower
+                        upper = covered_upper
+                        covered.pop(i)
+                    elif lower <= covered_lower and covered_upper <= upper: # current range consumes covered
+                        covered.pop(i)
+                    elif lower <= covered_lower and covered_lower <= upper: # overlap left
+                        upper = covered_upper
+                        covered.pop(i)
+                    elif lower <= covered_upper and covered_upper <= upper: # overlap right
+                        lower = covered_lower
+                        covered.pop(i)
+                else: # range not covered at all (no overlap)
                     covered.append([lower, upper])
-                else:
-                    for i in range(len(covered) - 1, -1, -1): # WHAT?! *goat scream (AAHHHH)*
-                        covered_lower, covered_upper = covered[i]
-                        # TODO: rewrite to remove absorbed ranges in list
-                        if covered_lower <= lower and upper <= covered_upper: # current range within covered
-                            break
-                        elif lower <= covered_lower and covered_upper <= upper: # current range consumes covered
-                            covered[i] = [lower, upper]
-                            break
-                        elif lower <= covered_lower and covered_lower <= upper: # overlap left
-                            covered[i] = [lower, covered_upper]
-                            break
-                        elif lower <= covered_upper and covered_upper <= upper: #overlap right
-                            covered[i] = [covered_lower, upper]
-                            break
-                    else: # range not covered at all (no overlap)
-                        covered.append([lower, upper])
             if len(covered) > 1:
-                print(covered)
-                break
+                distress_lower, distress_upper = 0, 0
+                for lower, upper in covered:
+                    if lower > 0:
+                        distress_upper = lower
+                    if upper < 4_000_000:
+                        distress_lower = upper
+                return self._calculate_frequency(distress_lower + 1, y)
 
     def _calculate_frequency(self, x: int, y: int) -> int:
-        return 4_000_000 * x + y
+        print(x, y)
+        return (4_000_000 * x) + y 
 
 
 def main():
