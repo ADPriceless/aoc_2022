@@ -58,6 +58,39 @@ class Environment:
                     self.covered.add(x)
         return len(self.covered)
 
+    def find_frequency_of_distress_beacon(self, size: int = 4_000_000) -> int:
+        for y in range(size + 1): # F U range
+            if y % 100_000 == 0:
+                print(y)
+            covered = []
+            for sensor in self.sensors:
+                lower, upper = sensor.get_line_coverage(y)
+                if len(covered) == 0:
+                    covered.append([lower, upper])
+                else:
+                    for i in range(len(covered) - 1, -1, -1): # WHAT?! *goat scream (AAHHHH)*
+                        covered_lower, covered_upper = covered[i]
+                        # TODO: rewrite to remove absorbed ranges in list
+                        if covered_lower <= lower and upper <= covered_upper: # current range within covered
+                            break
+                        elif lower <= covered_lower and covered_upper <= upper: # current range consumes covered
+                            covered[i] = [lower, upper]
+                            break
+                        elif lower <= covered_lower and covered_lower <= upper: # overlap left
+                            covered[i] = [lower, covered_upper]
+                            break
+                        elif lower <= covered_upper and covered_upper <= upper: #overlap right
+                            covered[i] = [covered_lower, upper]
+                            break
+                    else: # range not covered at all (no overlap)
+                        covered.append([lower, upper])
+            if len(covered) > 1:
+                print(covered)
+                break
+
+    def _calculate_frequency(self, x: int, y: int) -> int:
+        return 4_000_000 * x + y
+
 
 def main():
     # aoc_input = aoc_utils.readlines('input\\example15.txt')
@@ -66,6 +99,9 @@ def main():
     env = Environment(aoc_input, line_y=2_000_000)
     answer = env.find_beacon_exclusion()
     print(f'Part 1: {answer}')
+    
+    answer = env.find_frequency_of_distress_beacon()
+    print(f'Part 2: {answer}')
 
 
 if __name__ == '__main__':
