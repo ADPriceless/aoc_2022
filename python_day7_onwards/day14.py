@@ -5,33 +5,91 @@ Cave_t = list[list[str]]
 
 
 class Sand:
-    pass
+    def __init__(self, pos: Coord_t) -> None:
+        self.pos = [pos[0], pos[1]]
+        self.x_velocity = 0
+        self.at_rest = False
+
+    def check_below(self, cave: Cave_t, x_offset: int = 0) -> str:
+        if self.pos[0] + 1 == len(cave):
+            return 'void'
+        try:
+            return cave[self.pos[0] + 1][self.pos[1] + x_offset]
+        except IndexError:
+            print(f'y = {self.pos[0] + 1}, x = {self.pos[1] + x_offset}, x_offset = {x_offset}')
+
+    def fall_down(self):
+        if not self.at_rest:
+            self.pos[0] += 1
+            self.pos[1] += self.x_velocity
+
+    def check_below_left(self, cave: Cave_t) -> str:
+        return self.check_below(cave, x_offset=-1)
+
+    def check_below_right(self, cave: Cave_t) -> str:
+        return self.check_below(cave, x_offset=1)
+
+    def rest(self, cave: Cave_t) -> None:
+        self.at_rest = True
+        y, x = self.pos[0], self.pos[1]
+        cave[y][x] = 'O'
 
 
 class FallingSandSimulator:
-    def __init__(self, sand_start: Coord_t, cave: Cave_t) -> None:
+    def __init__(self, sand_start: Coord_t, cave: Cave_t, print_x_offset: int = 0) -> None:
         self.sand_start = sand_start
         self.cave = cave
+        self.print_x_offset = print_x_offset
         self.num_sand_units = 0
         self.end_sim = False
+        self.sand = None
+        self._make_sand()
+        self._tick_count = 0
 
-    def run(self):
+    def run(self) -> int:
         while not self.end_sim:
             self._tick()
+        return self.num_sand_units - 1
 
     def _tick(self):
-        # if air below sand:
-            # move sand down one unit
+        below_sand = self.sand.check_below(self.cave)
+        if self.sand.at_rest:
+            self._make_sand()
+        elif below_sand == 'void':
+            self.end_sim = True
+        elif below_sand == '.': 
+            self.sand.x_velocity = 0
+        elif below_sand in ('O', '#'):
+            if self.sand.check_below_left(self.cave) == '.':
+                self.sand.x_velocity = -1
+            elif self.sand.check_below_right(self.cave) == '.':
+                self.sand.x_velocity = 1
+            else:
+                self.sand.x_velocity = 0
+            if self.sand.x_velocity == 0:
+                self.sand.rest(self.cave)
+        self.sand.fall_down()
+
+
+        # if self._tick_count < 300:
+        #     print(f'Tick {self._tick_count}: n_sand = {self.num_sand_units}')
+        #     print(f'Sand y, x = {self.sand.pos[0]}, {self.sand.pos[1]}')
+        #     copy = [[ch for ch in row] for row in self.cave] # .copy() didn't work
+        #     try:
+        #         copy[self.sand.pos[0]][self.sand.pos[1]] = '+'
+        #         print_cave(copy, self.print_x_offset - 1)
+        #     except IndexError:
+        #         pass            
+        #     self._tick_count += 1
         # else:
-            # check if rock below and land
-            # check if sand below and decide where to land
-            # check if fallen off the edge (end simulation)
-        pass
+        #     self.end_sim = True
+
+    def _make_sand(self): # Anakin raging
+        self.sand = Sand(self.sand_start)
+        self.num_sand_units += 1
 
 
 class CaveGenerator:
-    PADDING: int = 1
-
     def __init__(self, aoc_input: list[str]) -> None:
         self.aoc_input = aoc_input
         self.coords = []
@@ -40,7 +98,6 @@ class CaveGenerator:
     def make_cave_system(self) -> Cave_t:
         self._parse_input_for_coords()
         self._get_min_max()
-        self._rebias_coords()
         self._create_canvas()
         self._draw_lines_to_canvas()
         return self.canvas
@@ -57,16 +114,12 @@ class CaveGenerator:
         self.y_min = min([min([coord[1] for coord in line]) for line in self.coords])
         self.y_max = max([max([coord[1] for coord in line]) for line in self.coords])
         
-    def _rebias_coords(self) -> None:
-        """Set coords to start indented by the padding"""
-        for line in self.coords:
-            for coord in line:
-                coord[0] -= self.x_min - self.PADDING
-                coord[1] -= self.y_min - self.PADDING
+    def get_x_min(self):
+        return self.x_min
 
     def _create_canvas(self) -> None:
-        self.canvas = [['.' for _ in range(self.x_min, self.x_max + 1 + 2*self.PADDING)] \
-            for _ in range(self.y_min, self.y_max + 1 + 2*self.PADDING)]
+        self.canvas = [['.' for _ in range(self.x_max + 1)] \
+            for _ in range(self.y_max + 1)]
 
     def _draw_lines_to_canvas(self) -> None:
         for coords in self.coords:
@@ -81,12 +134,21 @@ class CaveGenerator:
                 self.canvas[y][x] = '#'
 
 
+def print_cave(cave: Cave_t, x_offset: int = 0):
+    for row in cave:
+        print(''.join(row[x_offset:]))
+
 def main():
-    aoc_input = aoc_utils.readlines('input\\example14.txt')
+    print('----- Start -----')
+    # aoc_input = aoc_utils.readlines('input\\example14.txt')
+    aoc_input = aoc_utils.readlines('input\\day14.txt')
     cave_gen = CaveGenerator(aoc_input)
     cave_system = cave_gen.make_cave_system()
-    for row in cave_system:
-        print(''.join(row))
+    # sand_start = cave_gen.get_sand_start()
+    x_offset = cave_gen.get_x_min()
+    sim = FallingSandSimulator((0, 500), cave_system, print_x_offset=x_offset)
+    answer = sim.run()
+    print(f'Part 1: {answer}')
 
 if __name__ == '__main__':
     main()
