@@ -1,8 +1,14 @@
-def readlines(filepath: str, remove_blank_lines: bool = False) -> list[str]:
+def readlines(
+    filepath: str, 
+    remove_blank_lines: bool = False,
+    remove_trailing_newline: bool = False
+) -> list[str]:
     with open(filepath) as f:
         lines = f.readlines()
     if remove_blank_lines:
         lines = filter(lambda line: line != '\n', lines)
+    if remove_trailing_newline:
+        lines = [line.rstrip() for line in lines]
     return lines
 
 
