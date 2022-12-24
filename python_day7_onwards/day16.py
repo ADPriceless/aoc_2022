@@ -27,7 +27,7 @@ def create_vertices(aoc_input: list[str]) -> list[Vertex]:
     return vertices
 
 
-class Dijkstra:
+class Graph:
     def __init__(self, vertices: list[Vertex]) -> None:
         self.vertices = dict(zip([v.name for v in vertices], vertices))
         # MAX can be len(vertices) bc distance between each is 1 so longest path is n-1
@@ -61,13 +61,28 @@ class Dijkstra:
         return self.vertices[min_name]
 
 
+def print_shortest_paths(shortest_paths: list[dict]):
+    keys = shortest_paths[0].keys()
+    columns = ' '.join(keys)
+    print(f'  |{columns}')
+    print(f'-' * (len(columns) + 3))
+    for key, path in zip(keys, shortest_paths):
+        values = [str(v) for v in path.values()]
+        values = '  '.join(values)
+        print(f'{key}| {values}')
+
+
+
 def main():
     aoc_input = aoc_utils.readlines(
         'input\\example16.txt', remove_trailing_newline=True
     )
+    shortest_paths = []
     vertices = create_vertices(aoc_input)
-    d = Dijkstra(vertices)
-    d.dijkstra('AA')
+    graph = Graph(vertices)
+    for vertex in vertices:
+        shortest_paths.append(graph.dijkstra(vertex.name))
+    print_shortest_paths(shortest_paths)
 
 
 if __name__ == '__main__':
