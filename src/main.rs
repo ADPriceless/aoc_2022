@@ -1,14 +1,10 @@
 mod aoc_common;
 mod days;
-use days::day6;
+use days::day7;
 
 fn main() {
-    // let input = aoc_common::read_input("./input/example5.txt");
-    let input = aoc_common::read_input("./input/day6.txt");
+    let input = aoc_common::read_input("./input/example7.txt");
+    // let input = aoc_common::read_input("./input/day7.txt");
 
-    let answer = day6::part1(&input);
-    println!("Part 1: {answer}");
-
-    let answer = day6::part2(&input);
-    println!("Part 2: {answer}");
+    let answer = day7::part1(input);
 }
